@@ -5,7 +5,7 @@ import androidx.compose.ui.graphics.Color
 // Moje własne kolory do Theme
 
 val Blue = Color(0xFF3568A6)
-val BackgroundDay = Color(0xFFEBD9AE)
+val BackgroundDay = Color(0xFFDBF0FF)
 val BackgroundNight = Color(0xFF302D47)
 
 // Kolory utworzone podstawowo przez AS

@@ -58,29 +58,48 @@ class MainActivity : ComponentActivity() {
                     val isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
 
                     if (isPortrait) {
-                        when (drinkListViewModel.selectedGui) {
-                            "listOfDrinks" -> DrinkList(drinkListViewModel, isPortrait, windowSizeClass) { drink ->
-                                drinkListViewModel.selectDrink(drink)
-                            }
+                        val width = when (windowSizeClass.widthSizeClass) {
+                            WindowWidthSizeClass.Compact -> 1f
+                            WindowWidthSizeClass.Medium -> 0.7f
+                            WindowWidthSizeClass.Expanded -> 0.7f
+                            else -> 1f
+                        }
 
-                            "drinkDetail" -> DrinkDetail(
-                                drink = drinkListViewModel.selectedDrink,
-                                isPortrait,
-                                onBackClick = {
-                                    drinkListViewModel.navigateBackToList()
-                                    drinkListViewModel.selectDrink(null)
-                                },
-                                onTimerClick = { time ->
-                                    drinkListViewModel.navigateToShaker(time)
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth(width)
+                                    .align(Alignment.Center)
+                            ) {
+                                when (drinkListViewModel.selectedGui) {
+                                    "listOfDrinks" -> DrinkList(
+                                        drinkListViewModel,
+                                        isPortrait,
+                                        windowSizeClass
+                                    ) { drink ->
+                                        drinkListViewModel.selectDrink(drink)
+                                    }
+
+                                    "drinkDetail" -> DrinkDetail(
+                                        drink = drinkListViewModel.selectedDrink,
+                                        isPortrait,
+                                        onBackClick = {
+                                            drinkListViewModel.navigateBackToList()
+                                            drinkListViewModel.selectDrink(null)
+                                        },
+                                        onTimerClick = { time ->
+                                            drinkListViewModel.navigateToShaker(time)
+                                        }
+                                    )
+
+                                    "drinkShakingCounter" -> DrinkShakingCounter(
+                                        drinkListViewModel,
+                                        isPortrait,
+                                        shakingTime = drinkListViewModel.timeCounter,
+                                        onBackClick = { drinkListViewModel.navigateBackToDetail() }
+                                    )
                                 }
-                            )
-
-                            "drinkShakingCounter" -> DrinkShakingCounter(
-                                drinkListViewModel,
-                                isPortrait,
-                                shakingTime = drinkListViewModel.timeCounter,
-                                onBackClick = { drinkListViewModel.navigateBackToDetail() }
-                            )
+                            }
                         }
                     } else {
                         Row(modifier = Modifier.fillMaxSize()) {
@@ -237,7 +256,9 @@ fun DrinkDetail(
                             ) {
                                 Button(
                                     onClick = { onTimerClick(drink.shakingTime) },
-                                    modifier = Modifier.fillMaxWidth(0.5f)
+                                    modifier = Modifier.fillMaxWidth(0.6f)
+                                        .aspectRatio(3.5f)
+                                        .padding(8.dp)
                                 ) {
                                     Text(text = "⏳ Timer (${drink.shakingTime}s)")
                                 }
@@ -246,11 +267,18 @@ fun DrinkDetail(
                     }
                 }
 
-                Button(
-                    onClick = onBackClick,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(text = "Wróć do listy")
+                    Button(
+                        onClick = onBackClick,
+                        modifier = Modifier.fillMaxWidth(0.6f)
+                            .aspectRatio(3.5f)
+                            .padding(8.dp)
+                    ) {
+                        Text(text = "Wróć do listy")
+                    }
                 }
             }
         } else {
