@@ -1,0 +1,220 @@
+package com.example.drinkapp
+
+import android.app.Application
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.drinkapp.data.Drink
+import com.example.drinkapp.repositories.Repository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+
+class DrinkListViewModel(app: Application) : AndroidViewModel(app) {
+    private val repo = Repository(app.applicationContext)
+
+    var timeLeft by mutableIntStateOf(0)
+        private set
+
+    var isRunning by mutableStateOf(false)
+        private set
+
+    var selectedGui by mutableStateOf("listOfDrinks")
+        private set
+
+    var selectedDrink by mutableStateOf<Drink?>(null)
+        private set
+
+    var timeCounter by mutableIntStateOf(0)
+        private set
+
+    var hasCounterStarted by mutableStateOf(false)
+        private set
+
+    private var timerJob: Job? = null
+
+    init {
+        viewModelScope.launch {
+            repo.deleteAll()
+            val drinks = repo.getAll().first()
+            if (drinks.isEmpty()) {
+                populateDatabase()
+            }
+        }
+    }
+
+    // Funkcje do ustawiania aktualnego widoku
+    fun selectDrink(drink: Drink?) {
+        selectedDrink = drink
+        if (drink != null) {
+            selectedGui = "drinkDetail"
+        }
+    }
+
+    fun navigateBackToList() {
+        selectedGui = "listOfDrinks"
+    }
+
+    fun navigateToShaker(time: Int) {
+        timeCounter = time
+        resetTimer(time)
+        selectedGui = "drinkShakingCounter"
+    }
+
+    fun navigateBackToDetail() {
+        selectedGui = "drinkDetail"
+    }
+
+    // Funkcje do pobierania drinków z lokalnej bazy danych
+    fun getDrinks(): Flow<List<Drink>> {
+        return repo.getAll()
+    }
+
+    suspend fun getDrinkByName(name: String): Drink? {
+        return repo.getDrinkByName(name)
+    }
+
+    // Funkcje do zarządzania timerem
+    fun setCounterStart(started: Boolean) {
+        hasCounterStarted = started
+    }
+
+    fun startTimer(startTime: Int) {
+        timeLeft = startTime
+        isRunning = true
+        timerJob?.cancel()
+        timerJob = viewModelScope.launch {
+            while (isRunning && timeLeft > 0) {
+                delay(1000L)
+                timeLeft--
+                if (timeLeft == 0) {
+                    isRunning = false
+                }
+            }
+        }
+    }
+
+    fun toggleTimer() {
+        isRunning = !isRunning
+        if (isRunning) startTimer(timeLeft) else timerJob?.cancel()
+    }
+
+    fun resetTimer(startTime: Int) {
+        isRunning = false
+        timeLeft = startTime
+        timerJob?.cancel()
+    }
+
+    private fun populateDatabase() {
+        val drinks = listOf(
+            Drink(
+                name = "Margarita",
+                ingredients = "50ml Tequila, 20ml Triple Sec, 20ml Sok z limonki",
+                desc = "Wstrząśnij wszystkie składniki z lodem, odcedź do schłodzonego kieliszka koktajlowego, opcjonalnie z solą na rancie.",
+                imageResId = R.drawable.margarita,
+                shakingTime = 40,
+            ),
+            Drink(
+                name = "Mojito",
+                ingredients = "40ml Rum, 6 listków Mięty, 20ml Sok z limonki, Soda",
+                desc = "Rozgnieć miętę i limonkę w szklance, dodaj rum i kruszony lód, dopełnij wodą sodową i delikatnie wymieszaj.",
+                imageResId = R.drawable.mojito,
+                shakingTime = 20
+            ),
+            Drink(
+                name = "Cosmopolitan",
+                ingredients = "40ml Wódka, 15ml Triple Sec, 30ml Sok żurawinowy, 10ml Sok z limonki",
+                desc = "Wstrząśnij wszystkie składniki z lodem i odcedź do schłodzonego kieliszka koktajlowego, udekoruj skórką z cytryny.",
+                imageResId = R.drawable.cosmopolitan,
+                shakingTime = 40
+            ),
+            Drink(
+                name = "Sex on the Beach",
+                ingredients = "40ml Wódka, 20ml Likier brzoskwiniowy, 40ml Sok żurawinowy, 40ml Sok pomarańczowy",
+                desc = "Wstrząśnij wódkę i likier z lodem, odcedź do szklanki z lodem, dopełnij sokami i delikatnie wymieszaj.",
+                imageResId = R.drawable.sex_on_the_beach,
+                shakingTime = 30
+            ),
+            Drink(
+                name = "Pina Colada",
+                ingredients = "50ml Rum biały, 30ml Likier kokosowy, 50ml Sok ananasowy, 20ml Śmietanka kokosowa",
+                desc = "Wstrząśnij wszystkie składniki z lodem i odcedź do szklanki typu hurricane wypełnionej lodem.",
+                imageResId = R.drawable.pina_colada,
+                shakingTime = 35
+            ),
+            Drink(
+                name = "Tequila Sunrise",
+                ingredients = "50ml Tequila, 100ml Sok pomarańczowy, 10ml Grenadyna",
+                desc = "Wlej tequilę i sok do szklanki z lodem, delikatnie dodaj grenadynę, pozwalając jej opaść na dno.",
+                imageResId = R.drawable.tequila_sunrise,
+                shakingTime = 10
+            ),
+            Drink(
+                name = "Long Island Iced Tea",
+                ingredients = "20ml Wódka, 20ml Tequila, 20ml Rum biały, 20ml Gin, 20ml Triple Sec, 20ml Sok z cytryny, Cola",
+                desc = "Wstrząśnij wszystkie alkohole i sok z lodem, odcedź do szklanki z lodem, dopełnij colą i delikatnie wymieszaj.",
+                imageResId = R.drawable.long_island_iced_tea,
+                shakingTime = 30
+            ),
+            Drink(
+                name = "Gin and Tonic",
+                ingredients = "50ml Gin, 150ml Tonik, Plasterek cytryny",
+                desc = "Wlej gin do szklanki z lodem, dopełnij tonikiem, delikatnie wymieszaj i udekoruj plasterkiem cytryny.",
+                imageResId = R.drawable.gin_and_tonic,
+                shakingTime = 5
+            ),
+            Drink(
+                name = "Cuba Libre",
+                ingredients = "50ml Rum, 120ml Cola, 10ml Sok z limonki",
+                desc = "Wlej rum do szklanki z lodem, dodaj sok z limonki, dopełnij colą i delikatnie wymieszaj.",
+                imageResId = R.drawable.cuba_libre,
+                shakingTime = 5
+            ),
+            Drink(
+                name = "Whiskey Sour",
+                ingredients = "50ml Whiskey, 20ml Sok z cytryny, 20ml Syrop cukrowy",
+                desc = "Wstrząśnij wszystkie składniki z lodem i odcedź do szklanki z lodem, opcjonalnie udekoruj wisienką.",
+                imageResId = R.drawable.whiskey_sour,
+                shakingTime = 30
+            ),
+            Drink(
+                name = "Blue Lagoon",
+                ingredients = "50ml Wódka, 20ml Blue Curaçao, 100ml Sprite",
+                desc = "Wstrząśnij wódkę i Blue Curaçao z lodem, odcedź do szklanki z lodem, dopełnij Spritem i delikatnie wymieszaj.",
+                imageResId = R.drawable.blue_lagoon,
+                shakingTime = 20
+            ),
+            Drink(
+                name = "Aperol Spritz",
+                ingredients = "60ml Aperol, 90ml Prosecco, 30ml Woda sodowa",
+                desc = "Wlej Aperol i Prosecco do kieliszka z lodem, dopełnij wodą sodową i delikatnie wymieszaj.",
+                imageResId = R.drawable.aperol_spritz,
+                shakingTime = 10
+            ),
+            Drink(
+                name = "Old Fashioned",
+                ingredients = "50ml Bourbon, 1 Kostka cukru, 2 Dashes Angostura Bitters, Odrobina wody",
+                desc = "Rozpuść cukier z bittersami i wodą w szklance, dodaj lód i bourbon, delikatnie wymieszaj.",
+                imageResId = R.drawable.old_fashioned,
+                shakingTime = 20
+            ),
+            Drink(
+                name = "Negroni",
+                ingredients = "30ml Gin, 30ml Campari, 30ml Słodki wermut",
+                desc = "Wlej wszystkie składniki do szklanki z lodem i delikatnie wymieszaj, udekoruj skórką pomarańczy.",
+                imageResId = R.drawable.negroni,
+                shakingTime = 15
+            )
+        )
+
+        CoroutineScope(viewModelScope.coroutineContext).launch {
+            repo.insertAll(drinks)
+        }
+    }
+}
