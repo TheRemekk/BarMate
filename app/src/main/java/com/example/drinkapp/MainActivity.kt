@@ -12,6 +12,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
@@ -27,6 +28,7 @@ import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
@@ -69,7 +71,7 @@ class MainActivity : ComponentActivity() {
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth(width)
-                                    .align(Alignment.Center)
+                                    .align(Alignment.Center),
                             ) {
                                 when (drinkListViewModel.selectedGui) {
                                     "listOfDrinks" -> DrinkList(
@@ -215,39 +217,51 @@ fun DrinkDetail(
 ) {
     if (drink != null) {
         val drinkIngredientsList = drink.ingredients.split(",").map { it.trim() }
-        val bullet = "\u2022"
+
+        val configuration = LocalConfiguration.current
+        val screenHeight = configuration.screenHeightDp.dp
 
         if (isPortrait) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
+                    .padding(16.dp),
             ) {
                 LazyColumn(modifier = Modifier.weight(1f)) {
                     item {
                         Column {
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(text = drink.name, fontSize = 8.em,  color = MaterialTheme.colorScheme.onBackground)
-                            Spacer(modifier = Modifier.height(40.dp))
+                            Spacer(modifier = Modifier.height(screenHeight * 0.03f))
+                            Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = drink.name,
+                                    fontSize = 9.em,
+                                    color = MaterialTheme.colorScheme.onBackground
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(screenHeight * 0.05f))
 
-                            Text(text = "Składniki", fontSize = 5.em)
+                            Text(text = "🍸 Składniki", fontSize = 5.5.em)
+                            Spacer(modifier = Modifier.height(screenHeight * 0.007f))
                             Column(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalAlignment = Alignment.Start
                             ) {
                                 drinkIngredientsList.forEach { ingredient ->
                                     Text(
-                                        text = "$bullet $ingredient",
-                                        fontSize = 3.5.em
+                                        text = "❖ $ingredient",
+                                        fontSize = 3.75.em
                                     )
                                 }
                             }
-                            Spacer(modifier = Modifier.height(28.dp))
+                            Spacer(modifier = Modifier.height(screenHeight * 0.03f))
 
-                            Text(text = "Opis", fontSize = 5.em)
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Text(text = drink.desc, fontSize = 3.5.em)
-                            Spacer(modifier = Modifier.height(28.dp))
+                            Text(text = "📖 Opis", fontSize = 5.5.em)
+                            Spacer(modifier = Modifier.height(screenHeight * 0.007f))
+                            Text(text = drink.desc, fontSize = 3.75.em)
+                            Spacer(modifier = Modifier.height(screenHeight * 0.05f))
 
                             Spacer(modifier = Modifier.height(12.dp))
                             Column(
@@ -257,7 +271,7 @@ fun DrinkDetail(
                                 Button(
                                     onClick = { onTimerClick(drink.shakingTime) },
                                     modifier = Modifier.fillMaxWidth(0.6f)
-                                        .aspectRatio(3.5f)
+                                        .aspectRatio(4f)
                                         .padding(8.dp)
                                 ) {
                                     Text(text = "⏳ Timer (${drink.shakingTime}s)")
@@ -274,7 +288,7 @@ fun DrinkDetail(
                     Button(
                         onClick = onBackClick,
                         modifier = Modifier.fillMaxWidth(0.6f)
-                            .aspectRatio(3.5f)
+                            .aspectRatio(4f)
                             .padding(8.dp)
                     ) {
                         Text(text = "Wróć do listy")
@@ -283,64 +297,99 @@ fun DrinkDetail(
             }
         } else {
             val scrollState = rememberScrollState()
+            val isScrolled = scrollState.value > 0
+            val canScrollMore = scrollState.value < scrollState.maxValue
 
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
+                Spacer(modifier = Modifier.height(screenHeight * 0.03f))
                 Text(
                     text = drink.name,
-                    fontSize = 8.em,
+                    fontSize = 9.em,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
+                Spacer(modifier = Modifier.height(screenHeight * 0.05f))
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
+                // --> Część scrollowana, dostaje weight(1f)
+                Box(
                     modifier = Modifier
-                        .weight(1f)
                         .fillMaxWidth()
-                        .verticalScroll(scrollState)
+                        .weight(1f, fill = true) // <--- WAŻNE fill = true
                 ) {
-                    Column(
-                        modifier = Modifier.weight(1f)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(scrollState)
+                            .padding(end = 4.dp)
                     ) {
-                        Text(text = "Składniki", fontSize = 5.em)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        drinkIngredientsList.forEach { ingredient ->
-                            Text(
-                                text = "$bullet $ingredient",
-                                fontSize = 3.5.em
-                            )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(text = "🍸 Składniki", fontSize = 5.em)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            drinkIngredientsList.forEach { ingredient ->
+                                Text(text = "❖ $ingredient", fontSize = 3.5.em)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.width(32.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(text = "📖 Opis", fontSize = 5.em)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(text = drink.desc, fontSize = 3.5.em)
                         }
                     }
 
-                    Spacer(modifier = Modifier.width(32.dp))
+                    if (isScrolled) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(24.dp)
+                                .background(
+                                    Brush.verticalGradient(
+                                        colors = listOf(Color.Black.copy(alpha = 0.15f), Color.Transparent)
+                                    )
+                                )
+                                .align(Alignment.TopCenter)
+                        )
+                    }
 
-                    Column(
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(text = "Opis", fontSize = 5.em)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = drink.desc,
-                            fontSize = 3.5.em
+                    if (canScrollMore) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(24.dp)
+                                .background(
+                                    Brush.verticalGradient(
+                                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.15f))
+                                    )
+                                )
+                                .align(Alignment.BottomCenter)
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Column(
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                // --> Button
+                Button(
+                    onClick = { onTimerClick(drink.shakingTime) },
+                    modifier = Modifier
+                        .fillMaxWidth(0.4f)
+                        .aspectRatio(4f)
+                        .align(Alignment.CenterHorizontally)
                 ) {
-                    Button(onClick = { onTimerClick(drink.shakingTime) }) {
-                        Text("⏳ Timer (${drink.shakingTime}s)")
-                    }
+                    Text(text = "⏳ Timer (${drink.shakingTime}s)")
                 }
-            }
 
+                // --> Spacer który rozszerzy się tylko jeśli jest wolne miejsce
+                Spacer(
+                    modifier = Modifier
+                        .height(16.dp)
+                        .weight(0.2f, fill = true) // <--- DODAJE się kiedy mamy nadmiar miejsca
+                )
+            }
         }
     }
 }
@@ -352,6 +401,9 @@ fun DrinkShakingCounter(
     shakingTime: Int,
     onBackClick: () -> Unit
 ) {
+    val configuration = LocalConfiguration.current
+    val screenHeight = configuration.screenHeightDp.dp
+
     if (isPortrait) {
         Column(
             modifier = Modifier
@@ -398,7 +450,9 @@ fun DrinkShakingCounter(
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = if (!drinkListViewModel.isRunning) primaryColor else Color.Red,
                                 ),
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .aspectRatio(4f)
                             ) {
                                 Text(
                                     text = if (!drinkListViewModel.hasCounterStarted) {
@@ -410,12 +464,15 @@ fun DrinkShakingCounter(
                             }
                         }
                         Spacer(modifier = Modifier.width(16.dp))
+
                         Button(
                             onClick = {
                                 drinkListViewModel.resetTimer(shakingTime)
                                 drinkListViewModel.setCounterStart(false)
                             },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier
+                                .weight(1f)
+                                .aspectRatio(4f)
                         ) {
                             Text("Reset")
                         }
@@ -423,11 +480,19 @@ fun DrinkShakingCounter(
                 }
             }
 
-            Button(
-                onClick = onBackClick,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = "Powrót")
+                Button(
+                    onClick = onBackClick,
+                    modifier = Modifier.fillMaxWidth(0.6f)
+                        .align(Alignment.CenterHorizontally)
+                        .aspectRatio(4f)
+                        .padding(8.dp)
+                ) {
+                    Text(text = "Powrót")
+                }
             }
         }
     } else {
@@ -469,8 +534,10 @@ fun DrinkShakingCounter(
                         fontFamily = digitalFontFamily,
                         fontWeight = FontWeight.Bold,
                         fontStyle = FontStyle.Normal,
-                        fontSize = 20.em
+                        fontSize = 24.em
                     )
+
+                    Spacer(modifier = Modifier.height(screenHeight * 0.03f))
 
                     Row(
                         modifier = Modifier
@@ -488,7 +555,9 @@ fun DrinkShakingCounter(
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = if (!drinkListViewModel.isRunning) primaryColor else Color.Red,
                                 ),
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .aspectRatio(4f)
                             ) {
                                 Text(
                                     text = if (!drinkListViewModel.hasCounterStarted) {
@@ -505,7 +574,9 @@ fun DrinkShakingCounter(
                                 drinkListViewModel.resetTimer(shakingTime)
                                 drinkListViewModel.setCounterStart(false)
                             },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier
+                                .weight(1f)
+                                .aspectRatio(4f)
                         ) {
                             Text("Reset")
                         }
