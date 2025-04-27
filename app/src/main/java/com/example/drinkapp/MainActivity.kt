@@ -20,6 +20,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
@@ -152,9 +155,40 @@ fun DrinkList(
     windowSizeClass: WindowSizeClass,
     onItemClicked: (Drink) -> Unit
 ) {
-    val drinks = drinkListViewModel.getDrinks().collectAsState(initial = emptyList())
-
     Column(modifier = Modifier.padding(16.dp)) {
+
+        TextField(
+            value = drinkListViewModel.searchQuery,
+            onValueChange = { query -> drinkListViewModel.onSearchQueryChanged(query) },
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text("Wyszukaj drink") },
+            placeholder = { Text("Nazwa drinka") },
+            singleLine = true,
+            leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+            trailingIcon = {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (drinkListViewModel.searchQuery.isNotEmpty()) {
+                        IconButton(onClick = { drinkListViewModel.onSearchQueryChanged("") }) {
+                            Icon(Icons.Filled.Clear, contentDescription = "Clear")
+                        }
+                    }
+                    IconButton(onClick = {
+                        drinkListViewModel.onToggleFavorites(!drinkListViewModel.isOnlyFavorites)
+                    }) {
+                        val icon = if (drinkListViewModel.isOnlyFavorites) {
+                            painterResource(id = R.drawable.ic_fav_star)
+                        } else {
+                            painterResource(id = R.drawable.ic_fav_empty_star)
+                        }
+
+                        Icon(painter = icon, contentDescription = "Favorites Filter")
+                    }
+                }
+            }
+        )
+
+        val drinks = drinkListViewModel.filteredDrinks.collectAsState(initial = emptyList())
+
         LazyColumn(modifier = Modifier.weight(1f)) {
             items(drinks.value, key = { it.uid }) { drink ->
                 DrinkItem(
@@ -210,18 +244,16 @@ fun DrinkItem(
                     .size(50.dp)
                     .padding(start = 8.dp, bottom = 4.dp)
             ) {
-                if(drink.isFavourite == 1) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_fav_star),
-                        contentDescription = "Logo",
-                    )
+                val icon = if (drink.isFavourite == 1) {
+                    painterResource(id = R.drawable.ic_fav_star)
+                } else {
+                    painterResource(id = R.drawable.ic_fav_empty_star)
                 }
-                else {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_fav_empty_star),
-                        contentDescription = "Logo",
-                    )
-                }
+
+                Image(
+                    painter = icon,
+                    contentDescription = "Favourite",
+                )
             }
 
             Text(

@@ -13,6 +13,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -23,10 +26,55 @@ class DrinkListViewModel(app: Application) : AndroidViewModel(app) {
     init {
         viewModelScope.launch {
 //            repo.deleteAll()
-            val drinks = repo.getAll().first()
+            loadAllDrinks()
+        }
+    }
+    // Pasek wyszukiwania drinków
+
+    var searchQuery by mutableStateOf("")
+        private set
+
+    var isOnlyFavorites by mutableStateOf(false)
+        private set
+
+    private val _filteredDrinks = MutableStateFlow<List<Drink>>(emptyList())
+    val filteredDrinks: StateFlow<List<Drink>> = _filteredDrinks.asStateFlow()
+
+    private var searchJob: Job? = null
+
+    fun onSearchQueryChanged(query: String) {
+        searchQuery = query
+        reloadDrinks()
+    }
+
+    fun onToggleFavorites(onlyFav: Boolean) {
+        isOnlyFavorites = onlyFav
+        reloadDrinks()
+    }
+
+    private fun loadAllDrinks() {
+        viewModelScope.launch {
+            var drinks = getDrinks().first()
             if (drinks.isEmpty()) {
                 populateDatabase()
             }
+
+            reloadDrinks()
+        }
+    }
+
+    // Aktualizowanie listy drinków w zależności od wyszukiwanego tekstu
+    private fun reloadDrinks() {
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            repo.findDrinksByQuery("%$searchQuery%")
+                .collect { drinks ->
+                    _filteredDrinks.value = if (isOnlyFavorites) {
+                        drinks.filter { it.isFavourite == 1 }
+                    } else {
+                        drinks
+                    }
+                }
         }
     }
 
@@ -57,8 +105,7 @@ class DrinkListViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun toggleSheet() {
-        if (!isSheetOpen) isSheetOpen = true
-        else isSheetOpen = false
+        isSheetOpen = !isSheetOpen
     }
 
     // Ustawianie konkretnego drinka
@@ -80,17 +127,6 @@ class DrinkListViewModel(app: Application) : AndroidViewModel(app) {
     // Funkcja do pobierania listy wszystkich drinków
     fun getDrinks(): Flow<List<Drink>> {
         return repo.getAll()
-    }
-
-    // Pobieranie informacji czy drink jest ulubionym drinkiem użytkownika aplikacji
-    suspend fun getFavourite(drinkName: String): Int {
-        val drink = getDrinkByName(drinkName)
-        return drink?.isFavourite ?: 0
-    }
-
-    // Funkcja do pobierania listy ulubionych drinków
-    fun getFavouriteDrinks(): Flow<List<Drink>> {
-        return repo.getFavDrinksByName(1)
     }
 
     // Ustawianie polubienia na konkretnym drinku

@@ -21,6 +21,9 @@ interface DrinkDao {
     @Query("SELECT * FROM drinks WHERE drinks.isFavourite = :isFavourite")
     fun getFavDrinksByName(isFavourite: Int): Flow<List<Drink>>
 
+    @Query("SELECT * FROM drinks WHERE name LIKE :searchQuery")
+    fun findDrinksByQuery(searchQuery: String): Flow<List<Drink>>
+
     @Query("SELECT * FROM drinks")
     fun getAll(): Flow<List<Drink>>
 

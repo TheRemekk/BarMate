@@ -34,6 +34,10 @@ class Repository(context: Context): DrinkDao {
         return dao.getAll()
     }
 
+    override fun findDrinksByQuery(searchQuery: String): Flow<List<Drink>> {
+        return dao.findDrinksByQuery(searchQuery)
+    }
+
     // Delete all drinks from db
     override suspend fun deleteAll() = withContext(Dispatchers.IO) {
         dao.deleteAll()
