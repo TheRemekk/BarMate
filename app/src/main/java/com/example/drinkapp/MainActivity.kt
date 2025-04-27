@@ -47,6 +47,7 @@ import com.example.drinkapp.ui.theme.digitalFontFamily
 
 class MainActivity : ComponentActivity() {
     private val drinkListViewModel by viewModels<DrinkListViewModel>()
+
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -55,7 +56,7 @@ class MainActivity : ComponentActivity() {
             val windowSizeClass = calculateWindowSizeClass(this)
 
             DrinkAppTheme {
-                DrinkApp(title = "DrinkApp") {
+                DrinkApp(title = "DrinkApp", drinkListViewModel) {
                     val configuration = LocalConfiguration.current
                     val isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
 
@@ -111,9 +112,10 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
 
-                            Column(modifier = Modifier.weight(0.6f),
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
+                            Column(
+                                modifier = Modifier.weight(0.6f),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
                                 when (drinkListViewModel.selectedGui) {
                                     "drinkDetail" -> DrinkDetail(
                                         drink = drinkListViewModel.selectedDrink,
@@ -155,7 +157,12 @@ fun DrinkList(
     Column(modifier = Modifier.padding(16.dp)) {
         LazyColumn(modifier = Modifier.weight(1f)) {
             items(drinks.value, key = { it.uid }) { drink ->
-                DrinkItem(drink = drink, isPortrait, windowSizeClass, onClick = { onItemClicked(drink) })
+                DrinkItem(
+                    drink = drink,
+                    drinkListViewModel = drinkListViewModel,
+                    isPortrait,
+                    windowSizeClass,
+                    onClick = { onItemClicked(drink) })
             }
         }
     }
@@ -163,8 +170,13 @@ fun DrinkList(
 
 
 @Composable
-fun DrinkItem(drink: Drink, isPortrait: Boolean, windowSizeClass: WindowSizeClass, onClick: (Drink) -> Unit) {
-    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+fun DrinkItem(
+    drink: Drink,
+    drinkListViewModel: DrinkListViewModel,
+    isPortrait: Boolean,
+    windowSizeClass: WindowSizeClass,
+    onClick: (Drink) -> Unit
+) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 
     val heightDivider = when (windowSizeClass.widthSizeClass) {
@@ -186,23 +198,42 @@ fun DrinkItem(drink: Drink, isPortrait: Boolean, windowSizeClass: WindowSizeClas
             containerColor = Color(0xFF7BA8DB)
         ),
     ) {
-        Row(
-            modifier = Modifier.padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+        Box(
+            modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth(),
         ) {
-            Column(
+            IconButton(
+                onClick = { drinkListViewModel.toggleFavourite(drink) },
                 modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
+                    .align(Alignment.CenterStart)
+                    .size(50.dp)
+                    .padding(start = 8.dp, bottom = 4.dp)
             ) {
-                Text(text = drink.name, fontSize = 4.5.em, color = Color.Black)
+                if(drink.isFavourite == 1) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_fav_star),
+                        contentDescription = "Logo",
+                    )
+                }
+                else {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_fav_empty_star),
+                        contentDescription = "Logo",
+                    )
+                }
             }
+
+            Text(
+                text = drink.name,
+                fontSize = 4.5.em, color = Color.Black,
+                modifier = Modifier.align(Alignment.Center)
+            )
 
             Image(
                 painter = painterResource(id = drink.imageResId),
                 contentDescription = drink.name,
+                modifier = Modifier.align(Alignment.CenterEnd)
             )
         }
     }
@@ -232,8 +263,8 @@ fun DrinkDetail(
                         Column {
                             Spacer(modifier = Modifier.height(screenHeight * 0.03f))
                             Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Text(
                                     text = drink.name,
@@ -270,11 +301,11 @@ fun DrinkDetail(
                             ) {
                                 Button(
                                     onClick = { onTimerClick(drink.shakingTime) },
-                                    modifier = Modifier.fillMaxWidth(0.6f)
-                                        .aspectRatio(4f)
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.8f)
                                         .padding(8.dp)
                                 ) {
-                                    Text(text = "⏳ Timer (${drink.shakingTime}s)")
+                                    Text(text = "⏳ Timer (${drink.shakingTime}s)", fontSize = 5.em)
                                 }
                             }
                         }
@@ -287,11 +318,11 @@ fun DrinkDetail(
                 ) {
                     Button(
                         onClick = onBackClick,
-                        modifier = Modifier.fillMaxWidth(0.6f)
-                            .aspectRatio(4f)
+                        modifier = Modifier
+                            .fillMaxWidth(0.6f)
                             .padding(8.dp)
                     ) {
-                        Text(text = "Wróć do listy")
+                        Text(text = "Powrót", fontSize = 5.em)
                     }
                 }
             }
@@ -314,7 +345,6 @@ fun DrinkDetail(
                 )
                 Spacer(modifier = Modifier.height(screenHeight * 0.05f))
 
-                // --> Część scrollowana, dostaje weight(1f)
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -350,7 +380,10 @@ fun DrinkDetail(
                                 .height(24.dp)
                                 .background(
                                     Brush.verticalGradient(
-                                        colors = listOf(Color.Black.copy(alpha = 0.15f), Color.Transparent)
+                                        colors = listOf(
+                                            Color.Black.copy(alpha = 0.15f),
+                                            Color.Transparent
+                                        )
                                     )
                                 )
                                 .align(Alignment.TopCenter)
@@ -364,7 +397,10 @@ fun DrinkDetail(
                                 .height(24.dp)
                                 .background(
                                     Brush.verticalGradient(
-                                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.15f))
+                                        colors = listOf(
+                                            Color.Transparent,
+                                            Color.Black.copy(alpha = 0.15f)
+                                        )
                                     )
                                 )
                                 .align(Alignment.BottomCenter)
@@ -372,22 +408,19 @@ fun DrinkDetail(
                     }
                 }
 
-                // --> Button
                 Button(
                     onClick = { onTimerClick(drink.shakingTime) },
                     modifier = Modifier
-                        .fillMaxWidth(0.4f)
-                        .aspectRatio(4f)
+                        .fillMaxWidth(0.6f)
                         .align(Alignment.CenterHorizontally)
                 ) {
-                    Text(text = "⏳ Timer (${drink.shakingTime}s)")
+                    Text(text = "⏳ Timer (${drink.shakingTime}s)", fontSize = 5.em)
                 }
 
-                // --> Spacer który rozszerzy się tylko jeśli jest wolne miejsce
                 Spacer(
                     modifier = Modifier
                         .height(16.dp)
-                        .weight(0.2f, fill = true) // <--- DODAJE się kiedy mamy nadmiar miejsca
+                        .weight(0.2f, fill = true)
                 )
             }
         }
@@ -452,14 +485,13 @@ fun DrinkShakingCounter(
                                 ),
                                 modifier = Modifier
                                     .weight(1f)
-                                    .aspectRatio(4f)
                             ) {
                                 Text(
                                     text = if (!drinkListViewModel.hasCounterStarted) {
                                         "▶\uFE0F Start"
                                     } else {
                                         if (!drinkListViewModel.isRunning) "⏯\uFE0F Wznów" else "⏸\uFE0F Stop"
-                                    }
+                                    }, fontSize = 5.em
                                 )
                             }
                         }
@@ -472,9 +504,8 @@ fun DrinkShakingCounter(
                             },
                             modifier = Modifier
                                 .weight(1f)
-                                .aspectRatio(4f)
                         ) {
-                            Text("Reset")
+                            Text("Reset", fontSize = 5.em)
                         }
                     }
                 }
@@ -486,12 +517,12 @@ fun DrinkShakingCounter(
             ) {
                 Button(
                     onClick = onBackClick,
-                    modifier = Modifier.fillMaxWidth(0.6f)
+                    modifier = Modifier
+                        .fillMaxWidth(0.6f)
                         .align(Alignment.CenterHorizontally)
-                        .aspectRatio(4f)
                         .padding(8.dp)
                 ) {
-                    Text(text = "Powrót")
+                    Text(text = "Powrót", fontSize = 5.em)
                 }
             }
         }
@@ -557,14 +588,13 @@ fun DrinkShakingCounter(
                                 ),
                                 modifier = Modifier
                                     .weight(1f)
-                                    .aspectRatio(4f)
                             ) {
                                 Text(
                                     text = if (!drinkListViewModel.hasCounterStarted) {
                                         "▶\uFE0F Start"
                                     } else {
                                         if (!drinkListViewModel.isRunning) "⏯\uFE0F Wznów" else "⏸\uFE0F Stop"
-                                    }
+                                    }, fontSize = 5.em
                                 )
                             }
                         }
@@ -576,9 +606,8 @@ fun DrinkShakingCounter(
                             },
                             modifier = Modifier
                                 .weight(1f)
-                                .aspectRatio(4f)
                         ) {
-                            Text("Reset")
+                            Text("Reset", fontSize = 5.em)
                         }
                     }
                 }

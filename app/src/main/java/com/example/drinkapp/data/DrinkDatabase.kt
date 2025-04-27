@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [Drink::class], version = 2)
+@Database(entities = [Drink::class], version = 3)
 abstract class DrinkDatabase : RoomDatabase() {
     abstract fun drinkDao(): DrinkDao
 }
@@ -21,7 +21,9 @@ object DrinkDb {
                 context,
                 DrinkDatabase::class.java,
                 "drink-database"
-            ).addMigrations(migration_1_2)
+            )
+                .addMigrations(migration_1_2, migration_2_3)
+                .fallbackToDestructiveMigration()
                 .build()
         }
         return db!!
@@ -30,6 +32,12 @@ object DrinkDb {
     val migration_1_2 = object : Migration(1, 2) {
         override fun migrate(database: SupportSQLiteDatabase) {
             database.execSQL("ALTER TABLE drinks ADD COLUMN imageResId INTEGER DEFAULT 0 NOT NULL")
+        }
+    }
+
+    val migration_2_3 = object : Migration(2, 3) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("ALTER TABLE drinks ADD COLUMN isFavourite INTEGER DEFAULT 0 NOT NULL")
         }
     }
 }

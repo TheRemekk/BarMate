@@ -19,29 +19,10 @@ import kotlinx.coroutines.launch
 class DrinkListViewModel(app: Application) : AndroidViewModel(app) {
     private val repo = Repository(app.applicationContext)
 
-    var timeLeft by mutableIntStateOf(0)
-        private set
-
-    var isRunning by mutableStateOf(false)
-        private set
-
-    var selectedGui by mutableStateOf("listOfDrinks")
-        private set
-
-    var selectedDrink by mutableStateOf<Drink?>(null)
-        private set
-
-    var timeCounter by mutableIntStateOf(0)
-        private set
-
-    var hasCounterStarted by mutableStateOf(false)
-        private set
-
-    private var timerJob: Job? = null
-
+    // Wprowadzanie drinków do bazy danych w przypadku ich braku podczas inicjalizacji
     init {
         viewModelScope.launch {
-            repo.deleteAll()
+//            repo.deleteAll()
             val drinks = repo.getAll().first()
             if (drinks.isEmpty()) {
                 populateDatabase()
@@ -49,13 +30,9 @@ class DrinkListViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    // Funkcje do ustawiania aktualnego widoku
-    fun selectDrink(drink: Drink?) {
-        selectedDrink = drink
-        if (drink != null) {
-            selectedGui = "drinkDetail"
-        }
-    }
+    // Nawigacja pomiędzy okienkami
+    var selectedGui by mutableStateOf("listOfDrinks")
+        private set
 
     fun navigateBackToList() {
         selectedGui = "listOfDrinks"
@@ -71,16 +48,74 @@ class DrinkListViewModel(app: Application) : AndroidViewModel(app) {
         selectedGui = "drinkDetail"
     }
 
-    // Funkcje do pobierania drinków z lokalnej bazy danych
-    fun getDrinks(): Flow<List<Drink>> {
-        return repo.getAll()
+    // Zarządzanie rozwijanym ModalBottomSheet (pop-up)
+    var isSheetOpen by mutableStateOf(false)
+        private set
+
+    fun getSheet(): Boolean {
+        return isSheetOpen
     }
 
+    fun toggleSheet() {
+        if (!isSheetOpen) isSheetOpen = true
+        else isSheetOpen = false
+    }
+
+    // Ustawianie konkretnego drinka
+    var selectedDrink by mutableStateOf<Drink?>(null)
+        private set
+
+    fun selectDrink(drink: Drink?) {
+        selectedDrink = drink
+        if (drink != null) {
+            selectedGui = "drinkDetail"
+        }
+    }
+
+    // Pobieranie drinku po nazwie
     suspend fun getDrinkByName(name: String): Drink? {
         return repo.getDrinkByName(name)
     }
 
-    // Funkcje do zarządzania timerem
+    // Funkcja do pobierania listy wszystkich drinków
+    fun getDrinks(): Flow<List<Drink>> {
+        return repo.getAll()
+    }
+
+    // Pobieranie informacji czy drink jest ulubionym drinkiem użytkownika aplikacji
+    suspend fun getFavourite(drinkName: String): Int {
+        val drink = getDrinkByName(drinkName)
+        return drink?.isFavourite ?: 0
+    }
+
+    // Funkcja do pobierania listy ulubionych drinków
+    fun getFavouriteDrinks(): Flow<List<Drink>> {
+        return repo.getFavDrinksByName(1)
+    }
+
+    // Ustawianie polubienia na konkretnym drinku
+    fun toggleFavourite(drink: Drink) {
+        viewModelScope.launch {
+            val updatedDrink = drink.copy(isFavourite = if (drink.isFavourite == 1) 0 else 1)
+            repo.updateDrink(updatedDrink)
+        }
+    }
+
+    // Zarządzanie timerem (licznikiem czasu mieszania wybranego drinka)
+    var timeLeft by mutableIntStateOf(0)
+        private set
+
+    var isRunning by mutableStateOf(false)
+        private set
+
+    var timeCounter by mutableIntStateOf(0)
+        private set
+
+    var hasCounterStarted by mutableStateOf(false)
+        private set
+
+    private var timerJob: Job? = null
+
     fun setCounterStart(started: Boolean) {
         hasCounterStarted = started
     }
@@ -111,6 +146,7 @@ class DrinkListViewModel(app: Application) : AndroidViewModel(app) {
         timerJob?.cancel()
     }
 
+    // Funkcja wypełniająca bazę danych drinkami
     private fun populateDatabase() {
         val drinks = listOf(
             Drink(
