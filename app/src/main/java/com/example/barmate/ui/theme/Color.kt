@@ -1,4 +1,4 @@
-package com.example.drinkapp.ui.theme
+package com.example.barmate.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

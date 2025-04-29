@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "DrinkApp"
+rootProject.name = "BarMate"
 include(":app")
  

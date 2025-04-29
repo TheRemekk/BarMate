@@ -1,4 +1,4 @@
-package com.example.drinkapp
+package com.example.barmate
 
 import android.app.Application
 import androidx.compose.runtime.getValue
@@ -7,8 +7,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.drinkapp.data.Drink
-import com.example.drinkapp.repositories.Repository
+import com.example.barmate.data.Drink
+import com.example.barmate.repositories.Repository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay

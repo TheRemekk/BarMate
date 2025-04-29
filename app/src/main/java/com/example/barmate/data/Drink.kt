@@ -1,4 +1,4 @@
-package com.example.drinkapp.data
+package com.example.barmate.data
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

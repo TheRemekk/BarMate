@@ -1,4 +1,4 @@
-package com.example.drinkapp
+package com.example.barmate
 
 import org.junit.Test
 

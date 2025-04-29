@@ -1,9 +1,9 @@
-package com.example.drinkapp.repositories
+package com.example.barmate.repositories
 
 import android.content.Context
-import com.example.drinkapp.data.Drink
-import com.example.drinkapp.data.DrinkDao
-import com.example.drinkapp.data.DrinkDb
+import com.example.barmate.data.Drink
+import com.example.barmate.data.DrinkDao
+import com.example.barmate.data.DrinkDb
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext

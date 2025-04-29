@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.drinkapp"
+    namespace = "com.example.barmate"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.drinkapp"
+        applicationId = "com.example.barmate"
         minSdk = 24
         targetSdk = 35
         versionCode = 1

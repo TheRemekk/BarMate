@@ -1,4 +1,4 @@
-package com.example.drinkapp.data
+package com.example.barmate.data
 
 import android.content.Context
 import androidx.room.Database

@@ -1,4 +1,4 @@
-package com.example.drinkapp
+package com.example.barmate
 
 import android.content.res.Configuration
 import android.os.Bundle
@@ -38,15 +38,14 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
-import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.example.drinkapp.data.Drink
-import com.example.drinkapp.templates.DrinkApp
-import com.example.drinkapp.ui.theme.DrinkAppTheme
-import com.example.drinkapp.ui.theme.digitalFontFamily
-
+import com.example.barmate.data.Drink
+import com.example.barmate.templates.BarMateTopBar
+import com.example.barmate.ui.theme.BarMateTheme
+import com.example.barmate.ui.theme.digitalFontFamily
 
 class MainActivity : ComponentActivity() {
     private val drinkListViewModel by viewModels<DrinkListViewModel>()
@@ -58,8 +57,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             val windowSizeClass = calculateWindowSizeClass(this)
 
-            DrinkAppTheme {
-                DrinkApp(title = "DrinkApp", drinkListViewModel) {
+            BarMateTheme {
+                BarMateTopBar(drinkListViewModel) {
                     val configuration = LocalConfiguration.current
                     val isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
 
@@ -162,7 +161,6 @@ fun DrinkList(
             onValueChange = { query -> drinkListViewModel.onSearchQueryChanged(query) },
             modifier = Modifier.fillMaxWidth(),
             label = { Text("Wyszukaj drink") },
-            placeholder = { Text("Nazwa drinka") },
             singleLine = true,
             leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
             trailingIcon = {
@@ -300,7 +298,8 @@ fun DrinkDetail(
                             ) {
                                 Text(
                                     text = drink.name,
-                                    fontSize = 9.em,
+                                    fontSize = 8.em,
+                                    overflow = TextOverflow.Ellipsis,
                                     color = MaterialTheme.colorScheme.onBackground
                                 )
                             }
@@ -372,6 +371,7 @@ fun DrinkDetail(
                 Text(
                     text = drink.name,
                     fontSize = 9.em,
+                    overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
