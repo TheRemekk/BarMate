@@ -190,7 +190,7 @@ fun DrinkList(
                     drinkListViewModel = drinkListViewModel,
                     isPortrait,
                     windowSizeClass,
-                    onClick = { onItemClicked(drink) })
+                    onClick = { onItemClicked(drink)  })
             }
         }
     }
@@ -236,7 +236,6 @@ fun DrinkItem(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
                     .size(50.dp)
-                    .padding(start = 8.dp, bottom = 4.dp)
             ) {
                 val icon = if (drink.isFavourite == 1) {
                     painterResource(id = R.drawable.ic_fav_star)
@@ -252,7 +251,7 @@ fun DrinkItem(
 
             Text(
                 text = drink.name,
-                fontSize = 4.5.em, color = Color.Black,
+                fontSize = 4.em, color = Color.Black,
                 modifier = Modifier.align(Alignment.Center)
             )
 
@@ -474,12 +473,6 @@ fun DrinkShakingCounter(
     val seconds: Int = time % 60
 
     if (drink != null) {
-        LaunchedEffect(drink.shakingTime) {
-            drink.shakingTime.let {
-                drinkListViewModel.initializeTimer(it)
-            }
-        }
-
         val buttonLabel = when {
             !hasStarted -> "▶\uFE0F Start"
             isRunning  -> "⏸\uFE0F Stop"
@@ -530,7 +523,7 @@ fun DrinkShakingCounter(
                                 modifier = Modifier
                                     .weight(1f)
                             ) {
-                                Text(buttonLabel, fontSize = 5.em)
+                                Text(buttonLabel, fontSize = 4.5.em)
                             }
 
                             Spacer(modifier = Modifier.width(16.dp))
@@ -542,7 +535,7 @@ fun DrinkShakingCounter(
                                 modifier = Modifier
                                     .weight(1f)
                             ) {
-                                Text("Reset", fontSize = 5.em)
+                                Text("Reset", fontSize = 4.5.em)
                             }
                         }
                     }
@@ -559,7 +552,7 @@ fun DrinkShakingCounter(
                             .align(Alignment.CenterHorizontally)
                             .padding(8.dp)
                     ) {
-                        Text(text = "Powrót", fontSize = 5.em)
+                        Text(text = "Powrót", fontSize = 4.5.em)
                     }
                 }
             }
@@ -624,7 +617,7 @@ fun DrinkShakingCounter(
                                 modifier = Modifier
                                     .weight(1f)
                             ) {
-                                Text(buttonLabel, fontSize = 5.em)
+                                Text(buttonLabel, fontSize = 4.5.em)
                             }
 
                             Spacer(modifier = Modifier.width(16.dp))
@@ -635,7 +628,7 @@ fun DrinkShakingCounter(
                                 modifier = Modifier
                                     .weight(1f)
                             ) {
-                                Text("Reset", fontSize = 5.em)
+                                Text("Reset", fontSize = 4.5.em)
                             }
                         }
                     }

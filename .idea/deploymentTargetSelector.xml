@@ -15,10 +15,10 @@
       </SelectionState>
       <SelectionState runConfigName="BarMate.app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-04-29T14:51:14.975502200Z">
+        <DropdownSelection timestamp="2025-04-30T11:55:19.087239700Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\Remek\.android\avd\Pixel_9.avd" />
+              <DeviceId pluginId="PhysicalDevice" identifier="serial=RFCX71HAPDB" />
             </handle>
           </Target>
         </DropdownSelection>

@@ -84,7 +84,6 @@ class DrinkListViewModel(app: Application) : AndroidViewModel(app) {
 
     fun navigateBackToList() {
         selectedGui = "listOfDrinks"
-        resetTimer()
     }
 
     fun navigateToShaker() {
@@ -116,6 +115,7 @@ class DrinkListViewModel(app: Application) : AndroidViewModel(app) {
         selectedDrink = drink
         if (drink != null) {
             selectedGui = "drinkDetail"
+            initializeTimer(drink.shakingTime)
         }
     }
 
