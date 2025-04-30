@@ -26,6 +26,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.em
 import com.example.barmate.DrinkListViewModel
 import com.example.barmate.R
@@ -86,6 +87,7 @@ fun BarMateTopBar(drinkListViewModel: DrinkListViewModel, content: @Composable (
 
             val isSheetOpen = drinkListViewModel.getSheet()
             if (isSheetOpen) {
+                val appName = stringResource(id = R.string.app_name)
                 ModalBottomSheet(
                     onDismissRequest = { drinkListViewModel.toggleSheet() },
                     sheetState = sheetState
@@ -96,7 +98,7 @@ fun BarMateTopBar(drinkListViewModel: DrinkListViewModel, content: @Composable (
                             .padding(24.dp)
                     ) {
                         Text(
-                            text = "🍹 ${R.string.app_name}",
+                            text = "🍹 $appName",
                             fontSize = 6.em
                         )
                         Column {

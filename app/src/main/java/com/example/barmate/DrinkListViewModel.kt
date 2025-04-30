@@ -84,16 +84,16 @@ class DrinkListViewModel(app: Application) : AndroidViewModel(app) {
 
     fun navigateBackToList() {
         selectedGui = "listOfDrinks"
+        resetTimer()
     }
 
-    fun navigateToShaker(time: Int) {
-        timeCounter = time
-        resetTimer(time)
+    fun navigateToShaker() {
         selectedGui = "drinkShakingCounter"
     }
 
     fun navigateBackToDetail() {
         selectedGui = "drinkDetail"
+        resetTimer()
     }
 
     // Zarządzanie rozwijanym ModalBottomSheet (pop-up)
@@ -137,49 +137,64 @@ class DrinkListViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    // Ustawianie alertu z informacją o ukończeniu tworzenia drinka
+    var showDialog by mutableStateOf(false)
+        private set
+
+    fun toggleDialog() {
+        showDialog = !showDialog
+    }
+
     // Zarządzanie timerem (licznikiem czasu mieszania wybranego drinka)
-    var timeLeft by mutableIntStateOf(0)
+    var initialTimerTime by mutableIntStateOf(0)
         private set
 
-    var isRunning by mutableStateOf(false)
+    var timerTimeLeft by mutableIntStateOf(0)
         private set
 
-    var timeCounter by mutableIntStateOf(0)
+    var isTimerRunning by mutableStateOf(false)
         private set
 
-    var hasCounterStarted by mutableStateOf(false)
+    var hasTimerStarted by mutableStateOf(false)
         private set
 
     private var timerJob: Job? = null
 
-    fun setCounterStart(started: Boolean) {
-        hasCounterStarted = started
+    fun initializeTimer(time: Int) {
+        initialTimerTime = time
+        resetTimer()
     }
 
-    fun startTimer(startTime: Int) {
-        timeLeft = startTime
-        isRunning = true
+    fun startTimer(time: Int) {
+        if (initialTimerTime == time) {
+            hasTimerStarted = true
+        }
+
         timerJob?.cancel()
+        isTimerRunning = true
+
         timerJob = viewModelScope.launch {
-            while (isRunning && timeLeft > 0) {
+            while (timerTimeLeft > 0) {
                 delay(1000L)
-                timeLeft--
-                if (timeLeft == 0) {
-                    isRunning = false
-                }
+                timerTimeLeft -= 1
             }
+
+            isTimerRunning = false
+            hasTimerStarted = false
+            toggleDialog()
+            resetTimer()
         }
     }
 
-    fun toggleTimer() {
-        isRunning = !isRunning
-        if (isRunning) startTimer(timeLeft) else timerJob?.cancel()
+    fun stopTimer() {
+        isTimerRunning = false
+        timerJob?.cancel()
     }
 
-    fun resetTimer(startTime: Int) {
-        isRunning = false
-        timeLeft = startTime
-        timerJob?.cancel()
+    fun resetTimer() {
+        stopTimer()
+        timerTimeLeft = initialTimerTime
+        hasTimerStarted = false
     }
 
     // Funkcja wypełniająca bazę danych drinkami

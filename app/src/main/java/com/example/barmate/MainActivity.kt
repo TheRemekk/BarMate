@@ -5,6 +5,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -92,15 +94,13 @@ class MainActivity : ComponentActivity() {
                                             drinkListViewModel.navigateBackToList()
                                             drinkListViewModel.selectDrink(null)
                                         },
-                                        onTimerClick = { time ->
-                                            drinkListViewModel.navigateToShaker(time)
-                                        }
+                                        onTimerClick = { drinkListViewModel.navigateToShaker() }
                                     )
 
                                     "drinkShakingCounter" -> DrinkShakingCounter(
+                                        drink = drinkListViewModel.selectedDrink,
                                         drinkListViewModel,
                                         isPortrait,
-                                        shakingTime = drinkListViewModel.timeCounter,
                                         onBackClick = { drinkListViewModel.navigateBackToDetail() }
                                     )
                                 }
@@ -123,17 +123,13 @@ class MainActivity : ComponentActivity() {
                                         drink = drinkListViewModel.selectedDrink,
                                         isPortrait,
                                         onBackClick = { drinkListViewModel.selectDrink(null) },
-                                        onTimerClick = { time ->
-                                            drinkListViewModel.navigateToShaker(
-                                                time
-                                            )
-                                        },
+                                        onTimerClick = { drinkListViewModel.navigateToShaker() }
                                     )
 
                                     "drinkShakingCounter" -> DrinkShakingCounter(
+                                        drink = drinkListViewModel.selectedDrink,
                                         drinkListViewModel = drinkListViewModel,
                                         isPortrait,
-                                        shakingTime = drinkListViewModel.timeCounter,
                                         onBackClick = { drinkListViewModel.navigateBackToDetail() }
                                     )
                                 }
@@ -461,189 +457,193 @@ fun DrinkDetail(
 
 @Composable
 fun DrinkShakingCounter(
+    drink: Drink?,
     drinkListViewModel: DrinkListViewModel,
     isPortrait: Boolean,
-    shakingTime: Int,
     onBackClick: () -> Unit
 ) {
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp.dp
 
-    if (isPortrait) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-        ) {
-            LazyColumn(
+    val primaryColor = MaterialTheme.colorScheme.primary
+
+    val isRunning = drinkListViewModel.isTimerRunning
+    val hasStarted = drinkListViewModel.hasTimerStarted
+    val time: Int = drinkListViewModel.timerTimeLeft
+    val minutes: Int = time / 60
+    val seconds: Int = time % 60
+
+    if (drink != null) {
+        LaunchedEffect(drink.shakingTime) {
+            drink.shakingTime.let {
+                drinkListViewModel.initializeTimer(it)
+            }
+        }
+
+        val buttonLabel = when {
+            !hasStarted -> "▶\uFE0F Start"
+            isRunning  -> "⏸\uFE0F Stop"
+            else -> "⏯\uFE0F Wznów"
+        }
+
+        if (isPortrait) {
+            Column(
                 modifier = Modifier
-                    .weight(1f)
-                    .fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .fillMaxSize()
+                    .padding(16.dp),
             ) {
-                item {
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    item {
+                        ShakerAnimation(isRunning)
+                        Spacer(modifier = Modifier.height(48.dp))
+                        Text(
+                            text = "%02d:%02d".format(minutes, seconds),
+                            fontFamily = digitalFontFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontStyle = FontStyle.Normal,
+                            fontSize = 20.em
+                        )
+
+                        Spacer(modifier = Modifier.height(screenHeight * 0.03f))
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth(1f)
+                                .padding(16.dp)
+                        ) {
+                            Button(
+                                onClick = {
+                                    when {
+                                        !isRunning -> drinkListViewModel.startTimer(time)
+                                        else -> drinkListViewModel.stopTimer()
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (!isRunning) primaryColor else Color.Red,
+                                ),
+                                modifier = Modifier
+                                    .weight(1f)
+                            ) {
+                                Text(buttonLabel, fontSize = 5.em)
+                            }
+
+                            Spacer(modifier = Modifier.width(16.dp))
+
+                            Button(
+                                onClick = {
+                                    drinkListViewModel.resetTimer()
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                            ) {
+                                Text("Reset", fontSize = 5.em)
+                            }
+                        }
+                    }
+                }
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Button(
+                        onClick = onBackClick,
+                        modifier = Modifier
+                            .fillMaxWidth(0.6f)
+                            .align(Alignment.CenterHorizontally)
+                            .padding(8.dp)
+                    ) {
+                        Text(text = "Powrót", fontSize = 5.em)
+                    }
+                }
+            }
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
                     val primaryColor = MaterialTheme.colorScheme.primary
 
-                    val time: Int = drinkListViewModel.timeLeft
                     val minutes: Int = time / 60
                     val seconds: Int = time % 60
 
-                    ShakerAnimation(drinkListViewModel.isRunning)
-                    Spacer(modifier = Modifier.height(48.dp))
-                    Text(
-                        text = "%02d:%02d".format(minutes, seconds),
-                        fontFamily = digitalFontFamily,
-                        fontWeight = FontWeight.Bold,
-                        fontStyle = FontStyle.Normal,
-                        fontSize = 20.em
-                    )
-
-                    Row(
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth(1f)
-                            .padding(16.dp)
+                            .fillMaxHeight()
+                            .weight(0.3f),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
                     ) {
-                        if (drinkListViewModel.timeLeft != 0) {
+                        ShakerAnimation(isRunning)
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .weight(0.7f),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "%02d:%02d".format(minutes, seconds),
+                            fontFamily = digitalFontFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontStyle = FontStyle.Normal,
+                            fontSize = 24.em
+                        )
+
+                        Spacer(modifier = Modifier.height(screenHeight * 0.03f))
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp)
+                        ) {
                             Button(
                                 onClick = {
-                                    if (!drinkListViewModel.hasCounterStarted && drinkListViewModel.timeLeft == shakingTime) {
-                                        drinkListViewModel.setCounterStart(true)
+                                    when {
+                                        !isRunning -> drinkListViewModel.startTimer(time)
+                                        else -> drinkListViewModel.stopTimer()
                                     }
-                                    drinkListViewModel.toggleTimer()
                                 },
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = if (!drinkListViewModel.isRunning) primaryColor else Color.Red,
+                                    containerColor = if (!isRunning) primaryColor else Color.Red,
                                 ),
                                 modifier = Modifier
                                     .weight(1f)
                             ) {
-                                Text(
-                                    text = if (!drinkListViewModel.hasCounterStarted) {
-                                        "▶\uFE0F Start"
-                                    } else {
-                                        if (!drinkListViewModel.isRunning) "⏯\uFE0F Wznów" else "⏸\uFE0F Stop"
-                                    }, fontSize = 5.em
-                                )
+                                Text(buttonLabel, fontSize = 5.em)
+                            }
+
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Button(
+                                onClick = {
+                                    drinkListViewModel.resetTimer()
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                            ) {
+                                Text("Reset", fontSize = 5.em)
                             }
                         }
-                        Spacer(modifier = Modifier.width(16.dp))
-
-                        Button(
-                            onClick = {
-                                drinkListViewModel.resetTimer(shakingTime)
-                                drinkListViewModel.setCounterStart(false)
-                            },
-                            modifier = Modifier
-                                .weight(1f)
-                        ) {
-                            Text("Reset", fontSize = 5.em)
-                        }
                     }
-                }
-            }
-
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Button(
-                    onClick = onBackClick,
-                    modifier = Modifier
-                        .fillMaxWidth(0.6f)
-                        .align(Alignment.CenterHorizontally)
-                        .padding(8.dp)
-                ) {
-                    Text(text = "Powrót", fontSize = 5.em)
                 }
             }
         }
-    } else {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                val primaryColor = MaterialTheme.colorScheme.primary
-
-                val time: Int = drinkListViewModel.timeLeft
-                val minutes: Int = time / 60
-                val seconds: Int = time % 60
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .weight(0.3f),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    ShakerAnimation(drinkListViewModel.isRunning)
-                }
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .weight(0.7f),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "%02d:%02d".format(minutes, seconds),
-                        fontFamily = digitalFontFamily,
-                        fontWeight = FontWeight.Bold,
-                        fontStyle = FontStyle.Normal,
-                        fontSize = 24.em
-                    )
-
-                    Spacer(modifier = Modifier.height(screenHeight * 0.03f))
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp)
-                    ) {
-                        if (drinkListViewModel.timeLeft != 0) {
-                            Button(
-                                onClick = {
-                                    if (!drinkListViewModel.hasCounterStarted && drinkListViewModel.timeLeft == shakingTime) {
-                                        drinkListViewModel.setCounterStart(true)
-                                    }
-                                    drinkListViewModel.toggleTimer()
-                                },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = if (!drinkListViewModel.isRunning) primaryColor else Color.Red,
-                                ),
-                                modifier = Modifier
-                                    .weight(1f)
-                            ) {
-                                Text(
-                                    text = if (!drinkListViewModel.hasCounterStarted) {
-                                        "▶\uFE0F Start"
-                                    } else {
-                                        if (!drinkListViewModel.isRunning) "⏯\uFE0F Wznów" else "⏸\uFE0F Stop"
-                                    }, fontSize = 5.em
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Button(
-                            onClick = {
-                                drinkListViewModel.resetTimer(shakingTime)
-                                drinkListViewModel.setCounterStart(false)
-                            },
-                            modifier = Modifier
-                                .weight(1f)
-                        ) {
-                            Text("Reset", fontSize = 5.em)
-                        }
-                    }
-                }
-            }
+        if (drinkListViewModel.showDialog) {
+            DrinkReadyAlert(drink, drinkListViewModel)
         }
     }
 }
@@ -701,4 +701,66 @@ fun ShakerAnimation(isRunning: Boolean) {
             modifier = Modifier.size(256.dp)
         )
     }
+}
+
+@Composable
+fun DrinkReadyAlert(
+    drink: Drink,
+    drinkListViewModel: DrinkListViewModel
+) {
+    AlertDialog(
+        onDismissRequest = { drinkListViewModel.toggleDialog() },
+        title = { Text("Gotowe!") },
+        text = {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                BouncingImageAnimation(drink, durationSeconds = 3)
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { drinkListViewModel.toggleDialog() }) {
+                Text("OK")
+            }
+        }
+    )
+}
+
+@Composable
+fun BouncingImageAnimation(drink: Drink, durationSeconds: Int) {
+    val scale = remember { Animatable(1f) }
+
+    LaunchedEffect(Unit) {
+        val startTime = withFrameNanos { it }
+        var elapsed: Long
+        val totalDurationNanos = durationSeconds * 1_000_000_000L
+
+        do {
+            elapsed = withFrameNanos { it } - startTime
+            val progress = elapsed / totalDurationNanos.toFloat()
+
+            val dynamicTarget = 1.4f - (0.4f * progress).coerceIn(0f, 1f)
+
+            scale.animateTo(
+                targetValue = dynamicTarget,
+                animationSpec = tween(150, easing = FastOutSlowInEasing)
+            )
+            scale.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(150, easing = FastOutSlowInEasing)
+            )
+        } while (elapsed < totalDurationNanos)
+    }
+
+    Image(
+        painter = painterResource(id = drink.imageResId),
+        contentDescription = "Bouncing shaker",
+        modifier = Modifier
+            .size(150.dp)
+            .graphicsLayer {
+                scaleX = scale.value
+                scaleY = scale.value
+            }
+    )
 }
