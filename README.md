@@ -18,6 +18,7 @@ Aplikacja mobilna wspierająca użytkownika w przygotowywaniu koktajli, stworzon
 <a id="l2"></a>
 
 ## 🛠️ Główne funkcjonalności
+* Lista koktajli wraz z wyszukiwaniem oraz możliwością dodawania do ulubionych
 * Szczegóły drinka wraz z krótkim opisem przygotowania prezentowane po wybraniu z listy
 * Licznik z animacją shakera barmańskiego, reagujący na stan aplikacji
 * Dynamiczne zarządzanie stanem interfejsu użytkownika dzięki wykorzystaniu ViewModel
@@ -41,20 +42,20 @@ Aplikacja mobilna wspierająca użytkownika w przygotowywaniu koktajli, stworzon
 
 <details>
   <summary>📱 Ekran powitalny </summary>
-  <img src="SmartTemp-fe/images/logowanie.png" alt="Splash screen"/>
+  <img src="images/splash_screen.jpg" alt="Splash screen" width="200"/>
 </details>
 
 <details>
   <summary>📋 Widok listy koktajli </summary>
-  <img src="SmartTemp-fe/images/wykres.png" alt="Widok listy koktajli"/>
+  <img src="images/list_of_drinks.jpg" alt="Widok listy koktajli" width="200"/>
 </details>
 
 <details>
   <summary>📇 Szczegóły drinka </summary>
-  <img src="SmartTemp-fe/images/panel.png" alt="Szczegóły drinka"/>
+  <img src="images/details.jpg" alt="Szczegóły drinka" width="200"/>
 </details>
 
 <details>
   <summary>⌛ Mierzenie czasu (licznik) </summary>
-  <img src="SmartTemp-fe/images/full_view.png" alt="Mierzenie czasu (licznik)"/>
+  <img src="images/timer.jpg" alt="Mierzenie czasu (licznik)" width="200"/>
 </details>
