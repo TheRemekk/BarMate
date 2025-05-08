@@ -17,9 +17,6 @@ interface DrinkDao {
     @Query("SELECT * FROM drinks WHERE drinks.name = :drinkName")
     suspend fun getDrinkByName(drinkName: String): Drink
 
-    @Query("SELECT * FROM drinks WHERE drinks.isFavourite = :isFavourite")
-    fun getFavDrinksByName(isFavourite: Int): Flow<List<Drink>>
-
     @Query("SELECT * FROM drinks WHERE name LIKE :searchQuery")
     fun findDrinksByQuery(searchQuery: String): Flow<List<Drink>>
 
@@ -28,5 +25,4 @@ interface DrinkDao {
 
     @Query("DELETE FROM drinks")
     suspend fun deleteAll()
-
 }

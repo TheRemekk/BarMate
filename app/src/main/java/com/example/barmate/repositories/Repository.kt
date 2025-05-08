@@ -26,10 +26,6 @@ class Repository(context: Context): DrinkDao {
         dao.getDrinkByName(drinkName)
     }
 
-    override fun getFavDrinksByName(isFavourite: Int): Flow<List<Drink>> {
-        return dao.getFavDrinksByName(isFavourite)
-    }
-
     override fun getAll(): Flow<List<Drink>> {
         return dao.getAll()
     }

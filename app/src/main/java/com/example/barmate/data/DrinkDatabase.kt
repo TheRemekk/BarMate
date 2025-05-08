@@ -13,20 +13,22 @@ abstract class DrinkDatabase : RoomDatabase() {
 }
 
 object DrinkDb {
-    private var db: DrinkDatabase? = null
+    @Volatile
+    private var INSTANCE: DrinkDatabase? = null
 
     fun getInstance(context: Context): DrinkDatabase {
-        if(db == null) {
-            db = Room.databaseBuilder(
-                context,
+        return INSTANCE ?: synchronized(this) {
+            val instance = Room.databaseBuilder(
+                context.applicationContext,
                 DrinkDatabase::class.java,
                 "drink-database"
             )
                 .addMigrations(migration_1_2, migration_2_3)
                 .fallbackToDestructiveMigration()
                 .build()
+            INSTANCE = instance
+            instance
         }
-        return db!!
     }
 
     val migration_1_2 = object : Migration(1, 2) {

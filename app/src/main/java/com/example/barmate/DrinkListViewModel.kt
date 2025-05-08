@@ -58,7 +58,6 @@ class DrinkListViewModel(app: Application) : AndroidViewModel(app) {
             if (drinks.isEmpty()) {
                 populateDatabase()
             }
-
             reloadDrinks()
         }
     }

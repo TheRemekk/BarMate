@@ -1,6 +1,8 @@
 package com.example.barmate
 
+import android.content.Intent
 import android.content.res.Configuration
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -25,6 +27,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
@@ -37,9 +40,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -288,16 +293,29 @@ fun DrinkDetail(
                         Column {
                             Spacer(modifier = Modifier.height(screenHeight * 0.03f))
                             Column(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalAlignment = Alignment.CenterHorizontally
+                                modifier = Modifier
+                                    .fillMaxWidth()
                             ) {
-                                Text(
-                                    text = drink.name,
-                                    fontSize = 8.em,
-                                    overflow = TextOverflow.Ellipsis,
-                                    color = MaterialTheme.colorScheme.onBackground
-                                )
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = drink.name,
+                                        fontSize = 7.5.em,
+                                        fontWeight = FontWeight.Bold,
+                                        overflow = TextOverflow.Ellipsis,
+                                        maxLines = 1,
+                                        color = MaterialTheme.colorScheme.onBackground,
+                                        modifier = Modifier.weight(1f),
+                                        textAlign = TextAlign.Center
+                                    )
+
+                                    SendSmsFab(drink.ingredients)
+                                }
                             }
+
                             Spacer(modifier = Modifier.height(screenHeight * 0.05f))
 
                             Text(text = "🍸 Składniki", fontSize = 5.5.em)
@@ -363,13 +381,29 @@ fun DrinkDetail(
                     .padding(16.dp)
             ) {
                 Spacer(modifier = Modifier.height(screenHeight * 0.03f))
-                Text(
-                    text = drink.name,
-                    fontSize = 9.em,
-                    overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = drink.name,
+                            fontSize = 7.5.em,
+                            fontWeight = FontWeight.Bold,
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 1,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier.weight(1f),
+                            textAlign = TextAlign.Center
+                        )
+
+                        SendSmsFab(drink.ingredients)
+                    }
+                }
                 Spacer(modifier = Modifier.height(screenHeight * 0.05f))
 
                 Box(
@@ -756,4 +790,22 @@ fun BouncingImageAnimation(drink: Drink, durationSeconds: Int) {
                 scaleY = scale.value
             }
     )
+}
+
+@Composable
+fun SendSmsFab(ingredients: String) {
+    val context = LocalContext.current
+    val message = "Składniki drinka:\n$ingredients"
+
+    FloatingActionButton(
+        onClick = {
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                data = Uri.parse("sms:")
+                putExtra("sms_body", message)
+            }
+            context.startActivity(intent)
+        }
+    ) {
+        Icon(imageVector = Icons.Default.Send, contentDescription = "Wyślij SMS")
+    }
 }
