@@ -18,23 +18,17 @@ Aplikacja mobilna wspierająca użytkownika w przygotowywaniu koktajli, stworzon
 <a id="l2"></a>
 
 ## 🛠️ Główne funkcjonalności
-* Lista koktajli wraz z wyszukiwaniem oraz możliwością dodawania do ulubionych
-* Szczegóły drinka wraz z krótkim opisem przygotowania prezentowane po wybraniu z listy
-* Licznik z animacją shakera barmańskiego, reagujący na stan aplikacji
-* Dynamiczne zarządzanie stanem interfejsu użytkownika dzięki wykorzystaniu ViewModel
-* Wyświetlanie listy drinków z lokalnej bazy danych
-* Obsługa przechowywania i odczytu danych przy użyciu Room (SQLite)
-* Widoki dostosowane do orientacji urządzenia zarówno na telefonie jak i tablecie
+* Lista koktajli wraz z filtrowaniem po nazwie oraz po opcji „Ulubione” (gwiazdka), którą możemy przydzielić każdemu z koktajli znajdujących się na liście
+* Szczegóły drinka wyświetlającego szczegóły, krótki opis przygotowania oraz posiada przycisk FAB wysyłający wiadomość ze składnikami na wybrany numer tel.
+* Minutnik z ustawionym w lokalnej bazie danych czasem mieszania w shakerze zależnie od wybranego drinka z dokładnością do sekundy
+* Wyświetlenie podstawowych informacji o aplikacji po kliknięciu w logo na pasku narzędzi aplikacji w formie wysuwanego alertu
 
 <a id="l3"></a>
 
 ## ⚙️ Technologie i architektura
-* **Kotlin**
-* **Jetpack Compose:** deklaratywny framework, nowoczesne podejście do tworzenia UI
-* **MVVM (Model-View-ViewModel):** wzorzec architektoniczny oddzielający logikę biznesową od warstwy UI
-* **Room:** biblioteka ORM do zarządzania lokalną bazą danych SQLite w sposób obiektowy
-* **mutableStateOf:** mechanizm zarządzania stanem w Compose, umożliwiający automatyczne odświeżanie UI
-* **Material3:** nowoczesny system projektowania UI z komponentami zgodnymi z najnowszymi wytycznymi Google
+
+Aplikacja wykorzystuje architekturę MVVM – logika biznesowa została oddzielona od warstwy interfejsu użytkownika. Model odpowiada za lokalną bazę danych utworzoną przy pomocy biblioteki Room (SQLite), ViewModel zarządza przepływem danych między bazą a interfejsem oraz przechowuje stan aplikacji (np. wybrane pozycje lub zakładki), co zapobiega utracie danych podczas obrotu ekranu lub minimalizacji aplikacji. Warstwa View, zrealizowana w Jetpack Compose, odpowiada za prezentację danych i dynamiczne odświeżanie UI.
+Interfejs został dostosowany do orientacji poziomej i pionowej na telefonach (przedstawione na filmie) oraz tabletach, a także do trybu jasnego i ciemnego (light/dark mode), co wpływa na czytelność i estetykę aplikacji.
   
 <a id="l4"></a>
 
